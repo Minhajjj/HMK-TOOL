@@ -1,12 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import gsap from "gsap";
 import { FaAngleLeft, FaAngleRight, FaArrowLeft, FaLightbulb } from "react-icons/fa6";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Icon } from "./icons";
+
+/** Render inline ==highlight== markers as a highlighter-pen span. Everything else stays plain text. */
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(==[^=]+==)/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => {
+    const m = /^==([^=]+)==$/.exec(part);
+    if (m) {
+      return (
+        <mark
+          key={i}
+          className="mx-0.5 rounded-[3px] bg-amber-300 px-1.5 py-0.5 font-bold text-amber-950 shadow-[0_1px_0_rgba(0,0,0,0.25)]"
+        >
+          {m[1]}
+        </mark>
+      );
+    }
+    return part;
+  });
+}
 
 function ScriptBody({ body, moodLine, moodTone }: { body: string; moodLine: string | null; moodTone: "good" | "bad" | null }) {
   const paras = body.split(/\n/);
@@ -32,7 +52,7 @@ function ScriptBody({ body, moodLine, moodTone }: { body: string; moodLine: stri
                   : "bg-amber-500/10 border-amber-500/50 text-amber-300"
               )}
             >
-              {moodLine}
+              {renderInline(moodLine)}
             </p>
           );
         }
@@ -42,13 +62,13 @@ function ScriptBody({ body, moodLine, moodTone }: { body: string; moodLine: stri
           return (
             <p key={i} className="text-[15px] leading-[1.9]">
               <span className="font-bold text-sky-400">{t.slice(0, idx + 1)}</span>
-              <span className="text-foreground/90">{t.slice(idx + 1)}</span>
+              <span className="text-foreground/90">{renderInline(t.slice(idx + 1))}</span>
             </p>
           );
         }
         return (
           <p key={i} className={cn("text-[15px] leading-[1.9] text-foreground/90", t.startsWith("→") && "pl-4 text-sky-300")}>
-            {t}
+            {renderInline(t)}
           </p>
         );
       })}

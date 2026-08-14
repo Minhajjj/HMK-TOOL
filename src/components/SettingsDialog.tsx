@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { FaRotateLeft, FaCheck } from "react-icons/fa6";
+import { useRef, useState } from "react";
+import { FaRotateLeft, FaCheck, FaHighlighter } from "react-icons/fa6";
 import { useStore } from "@/lib/store";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,28 @@ export function SettingsDialog({ trigger }: { trigger: React.ReactNode }) {
   const { content, setContent, resetContent } = useStore();
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const bodyRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+
+  /** Wrap (or un-wrap) the current textarea selection with ==highlight== markers, then save. */
+  const toggleHighlight = (el: HTMLTextAreaElement | null, value: string, apply: (next: string) => void) => {
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    if (start === end) return; // nothing selected — do nothing
+    const selected = value.slice(start, end);
+    const trimmed = selected.trim();
+    if (!trimmed) return;
+    const lead = selected.slice(0, selected.length - selected.trimStart().length);
+    const tail = selected.slice(selected.trimEnd().length);
+    const already = /^==[\s\S]+==$/.test(trimmed);
+    const inner = already ? trimmed.slice(2, -2) : `==${trimmed}==`;
+    const next = value.slice(0, start) + lead + inner + tail + value.slice(end);
+    apply(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + lead.length, start + lead.length + inner.length);
+    });
+  };
 
   const patchSection = (id: string, p: Partial<{ title: string; body: string; note: string }>) =>
     setContent({
@@ -71,7 +93,23 @@ export function SettingsDialog({ trigger }: { trigger: React.ReactNode }) {
                 {openSection === s.id && (
                   <div className="px-3 pb-3 space-y-2">
                     <Input value={s.title} onChange={(e) => patchSection(s.id, { title: e.target.value })} className="h-8 text-sm font-semibold" />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 gap-1.5 text-xs"
+                        onClick={() =>
+                          toggleHighlight(bodyRefs.current[s.id], s.body, (next) => patchSection(s.id, { body: next }))
+                        }
+                      >
+                        <FaHighlighter className="size-3 text-amber-400" /> Highlight selected
+                      </Button>
+                      <span className="text-[11px] text-muted-foreground">Select a word or phrase in the box, then click.</span>
+                    </div>
                     <Textarea
+                      ref={(el) => {
+                        bodyRefs.current[s.id] = el;
+                      }}
                       value={s.body}
                       onChange={(e) => patchSection(s.id, { body: e.target.value })}
                       className="text-[13px] leading-relaxed min-h-[220px] font-normal"
@@ -103,7 +141,23 @@ export function SettingsDialog({ trigger }: { trigger: React.ReactNode }) {
                 {openSection === r.id && (
                   <div className="px-3 pb-3 space-y-2">
                     <Input value={r.label} onChange={(e) => patchRebuttal(r.id, { label: e.target.value })} className="h-8 text-sm font-semibold" />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 gap-1.5 text-xs"
+                        onClick={() =>
+                          toggleHighlight(bodyRefs.current[r.id], r.text, (next) => patchRebuttal(r.id, { text: next }))
+                        }
+                      >
+                        <FaHighlighter className="size-3 text-amber-400" /> Highlight selected
+                      </Button>
+                      <span className="text-[11px] text-muted-foreground">Select a word or phrase in the box, then click.</span>
+                    </div>
                     <Textarea
+                      ref={(el) => {
+                        bodyRefs.current[r.id] = el;
+                      }}
                       value={r.text}
                       onChange={(e) => patchRebuttal(r.id, { text: e.target.value })}
                       className="text-[13px] leading-relaxed min-h-[220px]"
