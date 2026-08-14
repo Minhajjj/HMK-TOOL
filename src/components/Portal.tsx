@@ -84,7 +84,12 @@ function Board() {
           </div>
         )}
         <div className="flex flex-col gap-2 min-h-0">
-          <div className="flex-1 min-h-0 grid grid-cols-[1fr_330px] gap-2">
+          <div
+            className={cn(
+              "flex-1 min-h-0 grid gap-2 transition-[grid-template-columns] duration-300 ease-out",
+              leftCollapsed ? "grid-cols-[1fr_50vw]" : "grid-cols-[1fr_330px]"
+            )}
+          >
             <ScriptCenter />
             <QuickAnswersPanel />
           </div>
