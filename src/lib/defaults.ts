@@ -17,6 +17,12 @@ export const DEFAULT_CONTENT: Content = {
       note: "ALL of this within 120 SECONDS — filter potential vs non-potential customers fast. Tick the answers in the left panel as you get them.",
     },
     {
+      id: "hook3in1",
+      title: "3-in-1 Hook",
+      body: "So, we are offering a ==3-in-1 wireless security system== that covers you against all aspects of emergencies — break-ins, fire, and medical emergencies. And this system is ==professionally monitored== by the certified 911 rep who acts according to your emergency situation to dispatch the police department, fire department, and paramedics department in case of any of these emergencies.\n\n[ Customer: Okay. ]\n\nSo this means whether you are home or away, asleep, visiting someone, at your office, or you have a family member home alone — your system will directly notify the authorities to take care of your home, your valuable possessions, and most of all, your family.\n\n[ Customer: That sounds good. ]\n\nOn top of this, we offer you the latest technology — which means you can ==control your system through your cell phone==, and we can also add ==video cameras== so you can keep an eye on your home from any part of the world when you're away.\n\nSo, let me ask you — what would concern you the most: burglary, fire, or being able to see what's happening around the property — or anything else in particular?",
+      note: "Main pitch hook — read this right after Qualifying on every call. Especially important when the customer has no existing system.",
+    },
+    {
       id: "internet",
       title: "Internet & Camera",
       body: "Now, let me ask you — do you have internet at your place?\n\nIF YES: That's wonderful! I am gonna help you get a camera on the outdoor. With our Smart HD camera, you can ==watch your home live==, see exactly who's at your door, check on packages, even talk through the camera if needed. And it's all ==real-time== — no delays, no guessing — and everything is stored securely in the cloud, so the evidence is safe. Sounds good?",

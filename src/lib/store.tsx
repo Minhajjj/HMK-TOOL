@@ -5,7 +5,7 @@ import { CallState, Content, Customer, Lead, Qualification } from "./types";
 import { DEFAULT_CALL, DEFAULT_CONTENT } from "./defaults";
 import { packageSummary } from "./logic";
 
-const CONTENT_KEY = "hkm-content-v1";
+const CONTENT_KEY = "hkm-content-v2";
 const CALL_KEY = "hkm-call-v1";
 const LEADS_KEY = "hkm-leads-v1";
 
@@ -54,6 +54,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     DEFAULT_CONTENT.rebuttals.forEach((r) => {
       if (!knownReb.has(r.id)) storedContent.rebuttals.push(r);
     });
+    // keep sections in the default running order so newly-added ones (e.g. the
+    // conditional 3-in-1 Hook) land in their intended slot, not appended at the end
+    const secOrder = DEFAULT_CONTENT.scriptSections.map((s) => s.id);
+    const rank = (id: string) => {
+      const i = secOrder.indexOf(id);
+      return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+    };
+    storedContent.scriptSections.sort((a, b) => rank(a.id) - rank(b.id));
     setContentState(storedContent);
     setCall(load<CallState>(CALL_KEY, DEFAULT_CALL));
     setLeads(load<Lead[]>(LEADS_KEY, []));
