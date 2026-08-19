@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FaRotateLeft, FaCheck, FaHighlighter } from "react-icons/fa6";
+import { FaRotateLeft, FaCheck, FaHighlighter, FaDownload, FaUpload } from "react-icons/fa6";
+import { Content } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +15,44 @@ export function SettingsDialog({ trigger }: { trigger: React.ReactNode }) {
   const { content, setContent, resetContent } = useStore();
   const [openSection, setOpenSection] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [ioMsg, setIoMsg] = useState<string | null>(null);
   const bodyRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  /** Download the current script + rebuttals as a JSON file to share / back up / promote to the default. */
+  const exportContent = () => {
+    const blob = new Blob([JSON.stringify(content, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `hkm-script-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setIoMsg("Exported ✓");
+    setTimeout(() => setIoMsg(null), 2500);
+  };
+
+  /** Load a previously-exported JSON file, replacing the current content. */
+  const importContent = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result)) as Content;
+        if (parsed && Array.isArray(parsed.scriptSections) && Array.isArray(parsed.rebuttals)) {
+          setContent(parsed);
+          setIoMsg("Imported ✓");
+        } else {
+          setIoMsg("Invalid file");
+        }
+      } catch {
+        setIoMsg("Invalid file");
+      }
+      setTimeout(() => setIoMsg(null), 3000);
+    };
+    reader.readAsText(file);
+  };
 
   /** Wrap (or un-wrap) the current textarea selection with ==highlight== markers, then save. */
   const toggleHighlight = (el: HTMLTextAreaElement | null, value: string, apply: (next: string) => void) => {
@@ -54,22 +92,42 @@ export function SettingsDialog({ trigger }: { trigger: React.ReactNode }) {
       <DialogTrigger render={trigger as React.ReactElement<Record<string, unknown>>} />
       <DialogContent className="sm:max-w-[780px] h-[85vh] flex flex-col">
         <DialogHeader className="shrink-0">
-          <DialogTitle className="flex items-center justify-between pr-6">
-            <span>Edit Scripts & Content <span className="text-xs font-normal text-muted-foreground">— changes save automatically</span></span>
-            <Button
-              size="sm"
-              variant={confirmReset ? "destructive" : "secondary"}
-              className="h-7 text-xs gap-1.5"
-              onClick={() => {
-                if (confirmReset) {
-                  resetContent();
-                  setConfirmReset(false);
-                } else setConfirmReset(true);
-              }}
-            >
-              <FaRotateLeft className="size-3" />
-              {confirmReset ? "Click again to confirm reset" : "Reset to defaults"}
-            </Button>
+          <DialogTitle className="flex items-center justify-between gap-2 pr-6">
+            <span className="min-w-0 truncate">Edit Scripts & Content <span className="text-xs font-normal text-muted-foreground">— changes save automatically</span></span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {ioMsg && <span className="text-[11px] font-semibold text-emerald-400">{ioMsg}</span>}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) importContent(f);
+                  e.target.value = "";
+                }}
+              />
+              <Button size="sm" variant="secondary" className="h-7 text-xs gap-1.5" onClick={exportContent} title="Download this script as a file">
+                <FaDownload className="size-3" /> Export
+              </Button>
+              <Button size="sm" variant="secondary" className="h-7 text-xs gap-1.5" onClick={() => fileInputRef.current?.click()} title="Load a script from a file">
+                <FaUpload className="size-3" /> Import
+              </Button>
+              <Button
+                size="sm"
+                variant={confirmReset ? "destructive" : "secondary"}
+                className="h-7 text-xs gap-1.5"
+                onClick={() => {
+                  if (confirmReset) {
+                    resetContent();
+                    setConfirmReset(false);
+                  } else setConfirmReset(true);
+                }}
+              >
+                <FaRotateLeft className="size-3" />
+                {confirmReset ? "Confirm reset" : "Reset"}
+              </Button>
+            </div>
           </DialogTitle>
         </DialogHeader>
 

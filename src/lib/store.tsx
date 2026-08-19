@@ -5,7 +5,7 @@ import { CallState, Content, Customer, Lead, Qualification } from "./types";
 import { DEFAULT_CALL, DEFAULT_CONTENT } from "./defaults";
 import { packageSummary } from "./logic";
 
-const CONTENT_KEY = "hkm-content-v2";
+const CONTENT_KEY = "hkm-content-v3";
 const CALL_KEY = "hkm-call-v1";
 const LEADS_KEY = "hkm-leads-v1";
 
